@@ -97,8 +97,19 @@ def depthFirstSearch(problem):
 
     #While moves are avaible
     while(not stack.isEmpty()):
-        #Get next move in frontier and add to visisted nodes
+        #Get next move in frontier
         state = stack.pop()
+
+        #Check if node was already visisted
+        evaluateNode = True
+        for vis in visitedNodes:
+            if(vis == (state[0],state[1])):
+                evaluateNode = False
+                break
+        if not evaluateNode:
+            continue
+
+        #Add to visited nodes
         visitedNodes.append((state[0],state[1]))
 
         #Return path if goal found
@@ -109,11 +120,10 @@ def depthFirstSearch(problem):
             successors = problem.getSuccessors((state[0],state[1]))
             for s in successors:
                 succ = s[0]
-                if(succ not in visitedNodes):
-                    #Add new move to path
-                    path = state[2]+[s[1]]
-                    #Push succesor onto stack with updated path
-                    stack.push(succ+(path,))
+                #Add new move to path
+                path = state[2]+[s[1]]
+                #Push succesor onto stack with updated path
+                stack.push(succ+(path,))
 
     #util.raiseNotDefined()
 
@@ -133,8 +143,19 @@ def breadthFirstSearch(problem):
 
     #While moves are avaible
     while(not frontier.isEmpty()):
-        #Get next move in frontier and add to visisted nodes
+        #Get next move in frontier
         state = frontier.pop()
+
+        #Check if node was already visited
+        evaluateNode = True
+        for vis in visitedNodes:
+            if(vis == (state[0],state[1])):
+                evaluateNode = False
+                break
+        if not evaluateNode:
+            continue
+
+        #Add to visisted nodes
         visitedNodes.append((state[0],state[1]))
 
         #Return path if goal found
@@ -145,11 +166,10 @@ def breadthFirstSearch(problem):
             successors = problem.getSuccessors((state[0],state[1]))
             for s in successors:
                 succ = s[0]
-                if(succ not in visitedNodes):
-                    #Add new move to path
-                    path = state[2]+[s[1]]
-                    #Push succesor onto stack with updated path
-                    frontier.push(succ+(path,))
+                #Add new move to path
+                path = state[2]+[s[1]]
+                #Push succesor onto stack with updated path
+                frontier.push(succ+(path,))
 
 
 def uniformCostSearch(problem):
@@ -158,15 +178,28 @@ def uniformCostSearch(problem):
     #Add starting state to stack
     frontier = util.PriorityQueue()
     startState = problem.getStartState()
-    frontier.push(startState+([],),0)
+
+    #Frontier tuple: (x,y,path,cost)
+    frontier.push(startState+([],0,),0)
 
     #Frontier
     visitedNodes = []
 
     #While moves are avaible
     while(not frontier.isEmpty()):
-        #Get next move in frontier and add to visisted nodes
+        #Get next move in frontier
         state = frontier.pop()
+
+        #Check if node was already visisted
+        evaluateNode = True
+        for vis in visitedNodes:    #Perhaps recalculate nodes if current cost is smaller than visistedNode's cost
+            if(vis == (state[0],state[1])):
+                evaluateNode = False
+                break
+        if not evaluateNode:
+            continue
+
+        #Add to visisted nodes
         visitedNodes.append((state[0],state[1]))
 
         #Return path if goal found
@@ -177,11 +210,12 @@ def uniformCostSearch(problem):
             successors = problem.getSuccessors((state[0],state[1]))
             for s in successors:
                 succ = s[0]
-                if(succ not in visitedNodes):
-                    #Add new move to path
-                    path = state[2]+[s[1]]
-                    #Push succesor onto stack with updated path
-                    frontier.push(succ+(path,),s[2])
+                #Add new move to path
+                path = state[2]+[s[1]]
+                #Increase cost
+                cost = state[3] + s[2]
+                #Push successor onto stack with updated path
+                frontier.push(succ+(path,cost, ),s[2])
 
 def nullHeuristic(state, problem=None):
     """
@@ -201,9 +235,28 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
     #While moves are avaible
     while(not frontier.isEmpty()):
-        #Get next move in frontier and add to visisted nodes
+        #Get next move in frontier
         state = frontier.pop()
-        visitedNodes.append((state[0],state[1]))
+
+        #Get path length
+        pathlength = len(state[2])
+
+        #Check if node was already visited and if path can be improved
+        evaluateNode = True
+        for vis in visitedNodes:
+            if(vis[0] == (state[0],state[1]) ):
+                if(vis[1] > pathlength):
+                    #remove this node from visited
+                    visitedNodes.remove(vis)
+                    break
+                else:
+                    evaluateNode = False
+                    break
+        if not evaluateNode:
+            continue
+
+        #Add state and pathlength to visited nodes
+        visitedNodes.append( ((state[0],state[1]),pathlength) )
 
         #Return path if goal found
         if(problem.isGoalState((state[0],state[1]))):
@@ -211,15 +264,15 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         #Add succesors to list
         else:
             successors = problem.getSuccessors((state[0],state[1]))
+            successorLength = pathlength+1
             for s in successors:
                 succ = s[0]
-                if(succ not in visitedNodes):
-                    #Add new move to path
-                    path = state[2]+[s[1]]
-                    #Calculate heuristic value
-                    heur = len(state[2]) + heuristic((state[0],state[1]),problem)
-                    #Push succesor onto stack with updated path
-                    frontier.push(succ+(path,),heur)
+                #Add new move to path
+                path = state[2]+[s[1]]
+                #Calculate heuristic value
+                heur = successorLength + heuristic((state[0],state[1]),problem)
+                #Push succesor onto stack with updated path
+                frontier.push(succ+(path,),heur)
 
 
 # Abbreviations
