@@ -40,6 +40,7 @@ from game import Actions
 import util
 import time
 import search
+import math
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -288,6 +289,7 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.cornersVisited = 0
 
     def getStartState(self):
         """
@@ -295,14 +297,20 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return (self.startingPosition[0],self.startingPosition[1],[False,False,False,False])
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+                
+        cornersVisited = state[2]        
+    
+        if False not in cornersVisited:
+            return True
+        
+        return False
 
     def getSuccessors(self, state):
         """
@@ -314,19 +322,29 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            x,y = (state[0],state[1])
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                visitedCorners = state[2][:]
+                if nextState == self.corners[0]:
+                    visitedCorners[0] = True
+                if nextState == self.corners[1]:
+                    visitedCorners[1] = True
+                if nextState == self.corners[2]:
+                    visitedCorners[2] = True
+                if nextState == self.corners[3]:
+                    visitedCorners[3] = True       
+                successors.append( ( (nextState[0],nextState[1],visitedCorners), action) )
 
             "*** YOUR CODE HERE ***"
 
         self._expanded += 1 # DO NOT CHANGE
+
         return successors
 
     def getCostOfActions(self, actions):
@@ -356,11 +374,22 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
+    posx = state[0]
+    posy = state[1]
+    visitedCorners = state[2]
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-
+    kortste = 999999
+    for corner in corners:
+        current = 0
+        current += abs(corner[0]-posx)
+        current += abs(corner[1]-posy)
+        if kortste > current:
+            kortste = current
+    
+    #distance = problem.corner - posx
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    return kortste # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"

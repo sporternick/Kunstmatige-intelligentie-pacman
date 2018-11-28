@@ -88,44 +88,46 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     #Add starting state to stack
-    stack = util.Stack()
+    frontier = util.Stack()
     startState = problem.getStartState()
-    stack.push(startState+([],))
+
+    tup = (startState,[])
+    frontier.push(tup)
 
     #Frontier
     visitedNodes = []
 
     #While moves are avaible
-    while(not stack.isEmpty()):
+    while(not frontier.isEmpty()):
         #Get next move in frontier
-        state = stack.pop()
+        node = frontier.pop()
+        state = node[0]
 
-        #Check if node was already visisted
+        #Check if node was already visited
         evaluateNode = True
         for vis in visitedNodes:
-            if(vis == (state[0],state[1])):
+            if(vis == state):
                 evaluateNode = False
                 break
         if not evaluateNode:
             continue
 
-        #Add to visited nodes
-        visitedNodes.append((state[0],state[1]))
+        #Add to visisted nodes
+        visitedNodes.append(state)
 
         #Return path if goal found
-        if(problem.isGoalState((state[0],state[1]))):
-            return state[2]
+        if(problem.isGoalState(state)):
+            print(node[1])
+            return node[1]
         #Add succesors to list
         else:
-            successors = problem.getSuccessors((state[0],state[1]))
+            successors = problem.getSuccessors(state)
             for s in successors:
                 succ = s[0]
                 #Add new move to path
-                path = state[2]+[s[1]]
+                path = node[1] + [s[1]]
                 #Push succesor onto stack with updated path
-                stack.push(succ+(path,))
-
-    #util.raiseNotDefined()
+                frontier.push( (succ,path) )
 
 
 
@@ -136,7 +138,9 @@ def breadthFirstSearch(problem):
     #Add starting state to stack
     frontier = util.Queue()
     startState = problem.getStartState()
-    frontier.push(startState+([],))
+
+    tup = (startState,[])
+    frontier.push(tup)
 
     #Frontier
     visitedNodes = []
@@ -144,32 +148,34 @@ def breadthFirstSearch(problem):
     #While moves are avaible
     while(not frontier.isEmpty()):
         #Get next move in frontier
-        state = frontier.pop()
+        node = frontier.pop()
+        state = node[0]
 
         #Check if node was already visited
         evaluateNode = True
         for vis in visitedNodes:
-            if(vis == (state[0],state[1])):
+            if(vis == state):
                 evaluateNode = False
                 break
         if not evaluateNode:
             continue
 
         #Add to visisted nodes
-        visitedNodes.append((state[0],state[1]))
+        visitedNodes.append(state)
 
         #Return path if goal found
-        if(problem.isGoalState((state[0],state[1]))):
-            return state[2]
+        if(problem.isGoalState(state)):
+            print(node[1])
+            return node[1]
         #Add succesors to list
         else:
-            successors = problem.getSuccessors((state[0],state[1]))
+            successors = problem.getSuccessors(state)
             for s in successors:
                 succ = s[0]
                 #Add new move to path
-                path = state[2]+[s[1]]
+                path = node[1] + [s[1]]
                 #Push succesor onto stack with updated path
-                frontier.push(succ+(path,))
+                frontier.push( (succ,path) )
 
 
 def uniformCostSearch(problem):
@@ -228,7 +234,9 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     #Add starting state to stack
     frontier = util.PriorityQueue()
     startState = problem.getStartState()
-    frontier.push(startState+([],),0)
+
+    tup = (startState,[])
+    frontier.push(tup,0)
 
     #Frontier
     visitedNodes = []
@@ -236,15 +244,16 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     #While moves are avaible
     while(not frontier.isEmpty()):
         #Get next move in frontier
-        state = frontier.pop()
+        node = frontier.pop()
+        state = node[0]
 
         #Get path length
-        pathlength = len(state[2])
+        pathlength = len(node[1])
 
         #Check if node was already visited and if path can be improved
         evaluateNode = True
         for vis in visitedNodes:
-            if(vis[0] == (state[0],state[1]) ):
+            if(vis[0] == state ):
                 if(vis[1] > pathlength):
                     #remove this node from visited
                     visitedNodes.remove(vis)
@@ -256,23 +265,23 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             continue
 
         #Add state and pathlength to visited nodes
-        visitedNodes.append( ((state[0],state[1]),pathlength) )
+        visitedNodes.append( (state,pathlength) )
 
         #Return path if goal found
-        if(problem.isGoalState((state[0],state[1]))):
-            return state[2]
+        if(problem.isGoalState(state)):
+            return node[1]
         #Add succesors to list
         else:
-            successors = problem.getSuccessors((state[0],state[1]))
+            successors = problem.getSuccessors(state)
             successorLength = pathlength+1
             for s in successors:
                 succ = s[0]
                 #Add new move to path
-                path = state[2]+[s[1]]
+                path = node[1]+[s[1]]
                 #Calculate heuristic value
-                heur = successorLength + heuristic((state[0],state[1]),problem)
+                heur = successorLength + heuristic(state,problem)
                 #Push succesor onto stack with updated path
-                frontier.push(succ+(path,),heur)
+                frontier.push( (succ,path) ,heur)
 
 
 # Abbreviations
