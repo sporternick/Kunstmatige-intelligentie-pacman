@@ -117,7 +117,6 @@ def depthFirstSearch(problem):
 
         #Return path if goal found
         if(problem.isGoalState(state)):
-            print(node[1])
             return node[1]
         #Add succesors to list
         else:
@@ -165,7 +164,6 @@ def breadthFirstSearch(problem):
 
         #Return path if goal found
         if(problem.isGoalState(state)):
-            print(node[1])
             return node[1]
         #Add succesors to list
         else:
@@ -273,6 +271,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 pcost = pathcost + s[2]
                 #Calculate heuristic value
                 heur = pcost + heuristic(succ,problem)
+                print heur - pcost
         
                 #Check if successor is on frontier
                 isOnFrontier = False

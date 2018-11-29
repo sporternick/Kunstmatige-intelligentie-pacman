@@ -495,9 +495,25 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
-    position, foodGrid = state
+
     "*** YOUR CODE HERE ***"
-    return 0
+    position, foodGrid = state
+    foodlist = foodGrid.asList()       
+
+    if(len(foodlist) == 0):
+        return 0 
+    elif(len(foodlist) == 1):
+        food = foodlist.pop()
+        return abs(food[0]-position[0]) + abs(food[1] - position[1])
+    
+    distance = 0
+    furthest = 0
+    for f in foodlist:
+        heur = abs(f[0]-position[0]) + abs(f[1] - position[1])
+        distance += heur
+        furthest = max(heur,furthest)
+
+    return max(0,(distance-(furthest*0.1))/len(foodlist))
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -513,7 +529,7 @@ class ClosestDotSearchAgent(SearchAgent):
                     t = (str(action), str(currentState))
                     raise Exception, 'findPathToClosestDot returned an illegal move: %s!\n%s' % t
                 currentState = currentState.generateSuccessor(0, action)
-        self.actionIndex = 0
+        self.actionIndex = 0 
         print 'Path found with cost %d.' % len(self.actions)
 
     def findPathToClosestDot(self, gameState):
@@ -526,9 +542,10 @@ class ClosestDotSearchAgent(SearchAgent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
-
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        path = search.breadthFirstSearch(problem)
+
+        return path
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -564,7 +581,10 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        for f in self.food.asList():
+            if f == (x,y):
+                return True
+        return False
 
 def mazeDistance(point1, point2, gameState):
     """
