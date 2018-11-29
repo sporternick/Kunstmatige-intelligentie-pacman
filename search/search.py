@@ -186,7 +186,8 @@ def uniformCostSearch(problem):
     startState = problem.getStartState()
 
     #Frontier tuple: (x,y,path,cost)
-    frontier.push(startState+([],0,),0)
+    tup = (startState,[],0)
+    frontier.push(tup ,0)
 
     #Frontier
     visitedNodes = []
@@ -194,34 +195,41 @@ def uniformCostSearch(problem):
     #While moves are avaible
     while(not frontier.isEmpty()):
         #Get next move in frontier
-        state = frontier.pop()
+        node = frontier.pop()
+        state = node[0]
+        pathcost = node[2]
 
         #Check if node was already visisted
         evaluateNode = True
-        for vis in visitedNodes:    #Perhaps recalculate nodes if current cost is smaller than visistedNode's cost
-            if(vis == (state[0],state[1])):
-                evaluateNode = False
-                break
+        for vis in visitedNodes:
+            if(vis[0] == state ):
+                if(vis[1] > pathcost):
+                    #remove this node from visited
+                    visitedNodes.remove(vis)
+                    break
+                else:
+                    evaluateNode = False
+                    break
         if not evaluateNode:
             continue
 
         #Add to visisted nodes
-        visitedNodes.append((state[0],state[1]))
+        visitedNodes.append( (state,pathcost) )
 
         #Return path if goal found
-        if(problem.isGoalState((state[0],state[1]))):
-            return state[2]
+        if(problem.isGoalState(state)):
+            return node[1]
         #Add succesors to list
         else:
-            successors = problem.getSuccessors((state[0],state[1]))
+            successors = problem.getSuccessors(state)
             for s in successors:
                 succ = s[0]
                 #Add new move to path
-                path = state[2]+[s[1]]
+                path = node[1] + [s[1]]
                 #Increase cost
-                cost = state[3] + s[2]
+                cost = pathcost + s[2]
                 #Push successor onto stack with updated path
-                frontier.push(succ+(path,cost, ),s[2])
+                frontier.push( (succ,path,cost), cost)
 
 def nullHeuristic(state, problem=None):
     """
@@ -235,7 +243,86 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     frontier = util.PriorityQueue()
     startState = problem.getStartState()
 
-    tup = (startState,[])
+    tup = (startState,[],0)
+    frontier.push(tup,heuristic(startState,problem))
+
+    #Frontier
+    visitedNodes = []
+
+    #While moves are avaible
+    while(not frontier.isEmpty()):
+        #Get next move in frontier
+        node = frontier.pop()
+        state = node[0]
+        pathcost = node[2]
+
+        #Add state and pathlength to visited nodes
+        visitedNodes.append( (state,pathcost) )
+
+        #Return path if goal found
+        if(problem.isGoalState(state)):
+            return node[1]
+        #Add succesors to list
+        else:
+            successors = problem.getSuccessors(state)
+            for s in successors:
+                succ = s[0]
+                #Add new move to path
+                path = node[1][:]+[s[1]]
+                #Get new path cost
+                pcost = pathcost + s[2]
+                #Calculate heuristic value
+                heur = pcost + heuristic(succ,problem)
+        
+                #Check if successor is on frontier
+                isOnFrontier = False
+                for ft in frontier.heap:
+                    #Get variables
+                    item = ft[2]
+                    ftState = item[0]
+                    ftPathCost = item[2]
+
+                    #Check if successor is already on frontier
+                    if(succ == ftState):
+                        #Exit if faster path on frontier
+                        if(pcost >= ftPathCost):
+                            isOnFrontier = True
+                            break
+                        #Remove other entry and add self if self is faster
+                        else:
+                            frontier.heap.remove(ft)
+                            frontier.push( (succ,path,pcost) ,heur)
+                            isOnFrontier = True
+                            break
+
+                if(isOnFrontier):
+                        continue
+
+                #Check if node was already visited or if path can be improved
+                isOnVisisted = False
+                for vis in visitedNodes:
+                    if(vis[0] == succ ):
+                        if(vis[1] > pcost):
+                            #remove this node from visited
+                            visitedNodes.remove(vis)
+                            break
+                        else:
+                            isOnVisisted = True
+                            break
+                if isOnVisisted:
+                    continue
+
+                frontier.push( (succ,path,pcost) ,heur)
+
+                
+
+"""
+def aStarSearch(problem, heuristic=nullHeuristic):
+    #Add starting state to stack
+    frontier = util.PriorityQueue()
+    startState = problem.getStartState()
+
+    tup = (startState,[],0)
     frontier.push(tup,0)
 
     #Frontier
@@ -246,15 +333,13 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         #Get next move in frontier
         node = frontier.pop()
         state = node[0]
-
-        #Get path length
-        pathlength = len(node[1])
+        pathcost = node[2]
 
         #Check if node was already visited and if path can be improved
         evaluateNode = True
         for vis in visitedNodes:
             if(vis[0] == state ):
-                if(vis[1] > pathlength):
+                if(vis[1] > pathcost):
                     #remove this node from visited
                     visitedNodes.remove(vis)
                     break
@@ -265,7 +350,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             continue
 
         #Add state and pathlength to visited nodes
-        visitedNodes.append( (state,pathlength) )
+        visitedNodes.append( (state,pathcost) )
 
         #Return path if goal found
         if(problem.isGoalState(state)):
@@ -273,15 +358,16 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         #Add succesors to list
         else:
             successors = problem.getSuccessors(state)
-            successorLength = pathlength+1
             for s in successors:
                 succ = s[0]
                 #Add new move to path
                 path = node[1]+[s[1]]
+                #Get new path cost
+                pcost = pathcost + s[2]
                 #Calculate heuristic value
-                heur = successorLength + heuristic(state,problem)
+                heur = pcost + heuristic(state,problem)
                 #Push succesor onto stack with updated path
-                frontier.push( (succ,path) ,heur)
+                frontier.push( (succ,path,pcost) ,heur)"""
 
 
 # Abbreviations

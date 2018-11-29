@@ -339,7 +339,7 @@ class CornersProblem(search.SearchProblem):
                     visitedCorners[2] = True
                 if nextState == self.corners[3]:
                     visitedCorners[3] = True       
-                successors.append( ( (nextState[0],nextState[1],visitedCorners), action) )
+                successors.append( ( (nextState[0],nextState[1],visitedCorners), action, 1) )
 
             "*** YOUR CODE HERE ***"
 
@@ -380,14 +380,28 @@ def cornersHeuristic(state, problem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
     kortste = 999999
+    i = 0
     for corner in corners:
         current = 0
+        #Return 0 if currently on corner to prevent corner avoidance behaviour
+        if corner[0] == posx and corner[1] == posy:
+            kortste = 0
+            continue
+
+        #Exit if corner is already visited
+        if visitedCorners[i]:
+            i += 1
+            continue
+        i+=1
+
+        #Calculate manhattan        1505
         current += abs(corner[0]-posx)
         current += abs(corner[1]-posy)
+
+        #Save shortest distance
         if kortste > current:
             kortste = current
     
-    #distance = problem.corner - posx
     "*** YOUR CODE HERE ***"
     return kortste # Default to trivial solution
 
