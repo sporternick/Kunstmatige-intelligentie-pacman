@@ -297,7 +297,7 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        return (self.startingPosition[0],self.startingPosition[1],[False,False,False,False])
+        return (self.startingPosition[0],self.startingPosition[1],[2,2,2,2])
 
     def isGoalState(self, state):
         """
@@ -307,7 +307,7 @@ class CornersProblem(search.SearchProblem):
                 
         cornersVisited = state[2]        
     
-        if False not in cornersVisited:
+        if 2 not in cornersVisited:
             return True
         
         return False
@@ -322,6 +322,12 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
+        i = 0
+        while(i < len(state[2])):
+            if state[2][i] == 1:
+                state[2][i] = 0
+            i += 1
+
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             x,y = (state[0],state[1])
@@ -331,14 +337,15 @@ class CornersProblem(search.SearchProblem):
             if not self.walls[nextx][nexty]:
                 nextState = (nextx, nexty)
                 visitedCorners = state[2][:]
-                if nextState == self.corners[0]:
-                    visitedCorners[0] = True
-                if nextState == self.corners[1]:
-                    visitedCorners[1] = True
-                if nextState == self.corners[2]:
-                    visitedCorners[2] = True
-                if nextState == self.corners[3]:
-                    visitedCorners[3] = True       
+                if nextState == self.corners[0] and visitedCorners[0] == 2:
+                    visitedCorners[0] = 1
+                if nextState == self.corners[1] and visitedCorners[1] == 2:
+                    visitedCorners[1] = 1
+                if nextState == self.corners[2] and visitedCorners[2] == 2:
+                    visitedCorners[2] = 1
+                if nextState == self.corners[3] and visitedCorners[3] == 2:
+                    visitedCorners[3] = 1       
+                #print(visitedCorners)
                 successors.append( ( (nextState[0],nextState[1],visitedCorners), action, 1) )
 
             "*** YOUR CODE HERE ***"
@@ -379,31 +386,84 @@ def cornersHeuristic(state, problem):
     visitedCorners = state[2]
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+
+    width = 0
+    for w in walls:
+        width += 1
+    width -= 2
+    height = len(walls[0])-2
+
     kortste = 999999
-    i = 0
+    i = -1
+    cornerCount = 0
+    cornerID = 0
     for corner in corners:
+        i += 1
         current = 0
         #Return 0 if currently on corner to prevent corner avoidance behaviour
-        if corner[0] == posx and corner[1] == posy:
-            kortste = 0
+        if visitedCorners[i] == 1:
+            kortste = 0 
+            cornerCount += 1
+            cornerID = corner
             continue
 
         #Exit if corner is already visited
-        if visitedCorners[i]:
-            i += 1
+        if visitedCorners[i] == 0:
             continue
-        i+=1
 
-        #Calculate manhattan        1505
+        cornerCount += 1
+
+        #Calculate manhattan
         current += abs(corner[0]-posx)
         current += abs(corner[1]-posy)
 
         #Save shortest distance
         if kortste > current:
             kortste = current
+            cornerID = corner
+
+    #Add minimal path to other corners
+    cornerList = [corners[0],corners[1],corners[2],corners[3]]
+    cornerList.remove(cornerID)
+    i = 0
+    while(i < 4):
+        if visitedCorners[i] == 0:
+            cornerList.remove(corners[i])
+        i += 1
+
+    distLeft = 0
     
-    "*** YOUR CODE HERE ***"
-    return kortste # Default to trivial solution
+    while(len(cornerList) > 0):
+        closestCorner = 0
+        closestDist = 9999999
+        for cl in cornerList:
+            ddist = abs(cornerID[0]-cl[0])
+            ddist += abs(cornerID[1]-cl[1])
+            if(ddist < closestDist):
+                closestDist = ddist
+                closestCorner = cl
+        
+        distLeft += closestDist
+        cornerID = closestCorner
+        cornerList.remove(cornerID)
+
+    """if(cornerCount == 4):
+        kortste += width + height + min(width,height)
+    elif(cornerCount == 3):
+        kortste += width + height
+    elif(cornerCount == 2):
+        i = -1
+        dist = 0
+        for corner in corners:
+            i += 1
+            if visitedCorners[i] == 2:
+                if not corner == cornerID:
+                    dist += abs(corner[0]-cornerID[0])
+                    dist += abs(corner[1]-cornerID[1])
+                    break
+        kortste += dist"""
+    
+    return kortste + distLeft
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -478,7 +538,7 @@ def foodHeuristic(state, problem):
     If using A* ever finds a solution that is worse uniform cost search finds,
     your heuristic is *not* consistent, and probably not admissible!  On the
     other hand, inadmissible or inconsistent heuristics may find optimal
-    solutions, so be careful.
+    solutions, so be careful    .
 
     The state is a tuple ( pacmanPosition, foodGrid ) where foodGrid is a Grid
     (see game.py) of either True or False. You can call foodGrid.asList() to get
@@ -495,10 +555,13 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
-
+    #BestScore: 11325
     "*** YOUR CODE HERE ***"
     position, foodGrid = state
-    foodlist = foodGrid.asList()       
+    foodlist = foodGrid.asList()
+
+    if not 'foodStart' in problem.heuristicInfo.keys():
+        problem.heuristicInfo['foodStart'] = foodlist[:]
 
     if(len(foodlist) == 0):
         return 0 

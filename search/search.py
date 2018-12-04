@@ -271,7 +271,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 pcost = pathcost + s[2]
                 #Calculate heuristic value
                 heur = pcost + heuristic(succ,problem)
-                print heur - pcost
         
                 #Check if successor is on frontier
                 isOnFrontier = False
@@ -312,62 +311,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                     continue
 
                 frontier.push( (succ,path,pcost) ,heur)
-
-                
-
-"""
-def aStarSearch(problem, heuristic=nullHeuristic):
-    #Add starting state to stack
-    frontier = util.PriorityQueue()
-    startState = problem.getStartState()
-
-    tup = (startState,[],0)
-    frontier.push(tup,0)
-
-    #Frontier
-    visitedNodes = []
-
-    #While moves are avaible
-    while(not frontier.isEmpty()):
-        #Get next move in frontier
-        node = frontier.pop()
-        state = node[0]
-        pathcost = node[2]
-
-        #Check if node was already visited and if path can be improved
-        evaluateNode = True
-        for vis in visitedNodes:
-            if(vis[0] == state ):
-                if(vis[1] > pathcost):
-                    #remove this node from visited
-                    visitedNodes.remove(vis)
-                    break
-                else:
-                    evaluateNode = False
-                    break
-        if not evaluateNode:
-            continue
-
-        #Add state and pathlength to visited nodes
-        visitedNodes.append( (state,pathcost) )
-
-        #Return path if goal found
-        if(problem.isGoalState(state)):
-            return node[1]
-        #Add succesors to list
-        else:
-            successors = problem.getSuccessors(state)
-            for s in successors:
-                succ = s[0]
-                #Add new move to path
-                path = node[1]+[s[1]]
-                #Get new path cost
-                pcost = pathcost + s[2]
-                #Calculate heuristic value
-                heur = pcost + heuristic(state,problem)
-                #Push succesor onto stack with updated path
-                frontier.push( (succ,path,pcost) ,heur)"""
-
 
 # Abbreviations
 bfs = breadthFirstSearch
